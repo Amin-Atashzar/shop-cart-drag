@@ -27,7 +27,10 @@ body {
   background-color: #75f4a3;
   transition: all 0.2s;
   position: relative;
-  /*animation: moveInBottom 0.5s ease-out;*/
+}
+
+.animated {
+  animation: moveInBottom 1s ease-out;
 }
 
 .cart:hover {
@@ -62,7 +65,7 @@ body {
 @keyframes moveInBottom {
   0% {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(200px);
   }
   100% {
     opacity: 1;

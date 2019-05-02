@@ -1,3 +1,4 @@
+const animated = { value: "animated", isAnimate: true };
 let cart = [];
 const products = [
   {
@@ -33,7 +34,8 @@ const products = [
 const listenDragStart = () => {
   document.addEventListener("dragstart", function(e) {
     const id = e.target.dataset["productId"];
-    e.dataTransfer.setData("text", id);
+    e.dataTransfer.setData("srcId", e.srcElement.parentNode.id);
+    e.dataTransfer.setData("id", id);
   });
 };
 
@@ -45,10 +47,11 @@ const listenDragOver = () => {
 
 const listenDrop = () => {
   document.addEventListener("drop", function(e) {
-    const id = e.dataTransfer.getData("text");
+    const targetId = e.dataTransfer.getData("srcId");
+    const id = e.dataTransfer.getData("id");
     if (e.target.id === "drop") {
       buy(Number(id));
-    } else if (e.target.id === "delete") {
+    } else if (e.target.id === "delete" && targetId !== "products") {
       deleteProduct(Number(id));
     }
 
@@ -76,11 +79,16 @@ const validateCart = (cart, products) =>
   }, true);
 
 const setInvoiceClass = () => {
-  if (document.getElementById("printInvoice").childNodes.length != 0) {
-    document.getElementById("invoice").classList.remove("empty");
-    document.getElementById("invoice").classList.add("fill");
+  const element = document.getElementById("invoice");
+  if (cart.length > 0) {
+    element.classList.remove("empty");
+    element.classList.add("fill");
+  } else {
+    element.classList.remove("fill");
+    element.classList.add("empty");
   }
 };
+
 const printProducts = () => {
   let root = document.getElementById("products");
   root.innerHTML = "";
@@ -94,7 +102,9 @@ const printProducts = () => {
     .filter(item => item.inStock > 0)
     .forEach(product => {
       const { title, imageSrc, inStock, price, id } = product;
-      const element = `<div class="cart" draggable="true" data-product-id='${id}'>
+      const element = `<div class="cart ${
+        animated.value
+      }" draggable="true" data-product-id='${id}'>
         <div class="image">
           <img draggable="false" src="${imageSrc}" alt="${title}" />
         </div>
@@ -117,9 +127,11 @@ const printProducts = () => {
       </div>`;
       root.innerHTML += element;
     });
+  setAnimation(animated);
 };
 
 const printInvoice = () => {
+  setInvoiceClass();
   const ul = document.getElementById("printInvoice");
   ul.innerHTML = "";
   cart
@@ -157,14 +169,13 @@ const printInvoice = () => {
   </div>
 </li>`;
       ul.innerHTML += element;
-      setInvoiceClass();
     });
 };
 
 const deleteProduct = id => {
   const draftCart = cart.map(item => ({ ...item }));
   draftCart.find(i => i.id === id).count--;
-  cart = draftCart;
+  cart = draftCart.filter(i => i.count > 0);
   printProducts();
   printInvoice();
 };
@@ -178,6 +189,13 @@ const buy = id => {
     printInvoice();
   } else {
     alert();
+  }
+};
+
+const setAnimation = anim => {
+  if (anim.isAnimate) {
+    anim.isAnimate = false;
+    anim.value = "";
   }
 };
 
